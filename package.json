@@ -1,0 +1,23 @@
+{
+  "name": "myoweb",
+  "version": "1.0.0",
+  "description": "none",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx http-server -S --cert certificate.crt --key privateKey.key"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kshatilov/MyoWeb.git"
+  },
+  "keywords": [
+    "emg",
+    "webxr"
+  ],
+  "author": "kirill",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kshatilov/MyoWeb/issues"
+  },
+  "homepage": "https://github.com/kshatilov/MyoWeb#readme"
+}
