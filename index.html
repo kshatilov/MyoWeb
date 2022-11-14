@@ -1,13 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyoWeb</title>
     <script src="modules/connect_widget.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://unpkg.com/three@0.146.0/build/three.module.js"
+          }
+        }
+      </script>
+
+
+    <script type="module">
+
+
+
+        const geometry = new THREE.BufferGeometry();
+
+        // attributes
+        const positions = new Float32Array( 21 * 3 ); // 3 vertices per point
+        geometry.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+
+        // draw range
+        geometry.setDrawRange( 0, 21 );
+
+        // material
+        const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+
+        // line
+        const line = new THREE.Line( geometry, material );
+
+       
+
+
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementsByClassName('output_canvas')[0];
+        const canvasCtx = canvasElement.getContext('2d');
+
+        function onResults(results) {
+            // while (scene.children.length > 0) {
+            //     scene.remove(scene.children[0]);
+            // }
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(
+                results.image, 0, 0, canvasElement.width, canvasElement.height);
+            if (results.multiHandLandmarks) {
+
+
+                for (const landmarks of results.multiHandLandmarks) {
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
+                        { color: '#00FF00', lineWidth: 5 });
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2 });
+                    
+                    
+
+                    for (let i = 0; i < landmarks.length; ++i) {
+                        positions[3 * i] = landmarks[i]["x"] * 10;
+                        positions[3 * i + 1] = landmarks[i]["y"] * 10;
+                        positions[3 * i + 2] = landmarks[i]["z"] * 10;
+
+                        // // console.log(pos);
+                        // var geometry = new THREE.SphereGeometry(0.1, 12, 8);
+
+                        // // material
+                        // var material = new THREE.MeshPhongMaterial({
+                        //     color: 0x00ffff,
+                        //     flatShading: true,
+                        //     transparent: true,
+                        //     opacity: 0.7,
+                        // });
+
+                        // // mesh
+                        // mesh = new THREE.Mesh(geometry, material);
+                        // scene.add(mesh);
+                        // mesh.position.set(pos["x"] * 10, pos["y"] * 10, pos["z"] * 10)
+                        
+                    }
+                    renderer.render(scene, camera);
+                }
+            }
+            canvasCtx.restore();
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        const webcamera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 1280,
+            height: 720
+        });
+        webcamera.start();
+
+        import * as THREE from "https://threejs.org/build/three.module.js";
+        import { OrbitControls } from "https://threejs.org/examples/jsm/controls/OrbitControls.js";
+
+        var mesh, renderer, scene, camera, controls;
+
+        init();
+        render();
+
+        function init() {
+
+            // renderer
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(400, 400);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            renderer.domElement.style.marginLeft = "20px";
+            renderer.domElement.style.marginTop = "20px";
+            renderer.domElement.style.borderRadius = "10px";
+            renderer.domElement.style.border = "2px solid gray";
+
+
+            document.body.appendChild(renderer.domElement);
+
+            // scene
+            scene = new THREE.Scene();
+
+            // camera
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.set(20, 20, 20);
+
+            // controls
+            controls = new OrbitControls(camera, renderer.domElement);
+
+            // ambient
+            scene.add(new THREE.AmbientLight(0x222222));
+
+            // light
+            var light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(20, 20, 0);
+            scene.add(light);
+
+            // geometry
+            // var geometry = new THREE.SphereGeometry(5, 12, 8);
+
+            // // material
+            // var material = new THREE.MeshPhongMaterial({
+            //     color: 0x00ffff,
+            //     flatShading: true,
+            //     transparent: true,
+            //     opacity: 0.7,
+            // });
+
+            // // mesh
+            // mesh = new THREE.Mesh(geometry, material);
+            // scene.add(mesh);
+            scene.add(line);
+        }
+
+        function render() {
+
+            requestAnimationFrame(render);
+
+            //controls.update();
+
+            renderer.render(scene, camera);
+            line.geometry.attributes.position.needsUpdate = true; 
+
+        }
+
+
+
+    </script>
 </head>
+
 <body>
     <div id="widget_container"></div>
+    <div class="container">
+        <video class="input_video" style="display: none"></video>
+        <canvas class="output_canvas" width="400" height="220" style="border-radius: 10px; margin: 20px;"></canvas>
+    </div>
 </body>
-</html>   
+
+</html>

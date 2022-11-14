@@ -56,7 +56,7 @@ init = () => {
         widgetBody.style.borderRadius  = "10px";
         widgetBody.style.border =  "2px solid gray";
         widgetBody.style.padding =  "10px";
-        widgetBody.style.width =  "300px";
+        widgetBody.style.width =  "375px";
 
         connectButton = document.createElement("button")
         connectButton.innerHTML = "connect";
